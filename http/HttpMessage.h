@@ -463,13 +463,10 @@ public:
     // url -> structed url
     void ParseUrl();
 
+    // /path?query#fragment
+    std::string FullPath() { return path; }
     // /path
-    std::string Path() {
-        const char* s = path.c_str();
-        const char* e = s;
-        while (*e && *e != '?' && *e != '#') ++e;
-        return std::string(s, e);
-    }
+    std::string Path();
 
     // ?query_params
     template<typename T>
@@ -489,6 +486,7 @@ public:
     void FillHost(const char* host, int port = DEFAULT_HTTP_PORT);
     void SetHost(const char* host, int port = DEFAULT_HTTP_PORT);
     void SetProxy(const char* host, int port);
+    bool IsProxy() { return proxy; }
 
     // Range: bytes=0-4095
     void SetRange(long from = 0, long to = -1) {

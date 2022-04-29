@@ -313,9 +313,17 @@ int __http_client_send(http_client_t* cli, HttpRequest* req, HttpResponse* resp)
     }
     CURL* curl = cli->curl;
 
+    // proxy
+    if (req->IsProxy()) {
+        curl_easy_setopt(curl, CURLOPT_PROXY, req->host.c_str());
+        curl_easy_setopt(curl, CURLOPT_PROXYPORT, req->port);
+    }
+
     // SSL
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+    if (req->IsHttps()) {
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+    }
 
     // http2
     if (req->http_major == 2) {
@@ -481,7 +489,7 @@ int __http_client_send(http_client_t* cli, HttpRequest* req, HttpResponse* resp)
     int err = 0;
     int timeout = req->timeout;
     int connfd = cli->fd;
-    bool https = req->IsHttps();
+    bool https = req->IsHttps() && !req->IsProxy();
     bool keepalive = true;
 
     time_t start_time = time(NULL);

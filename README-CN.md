@@ -45,9 +45,9 @@
 - [libhv教程18--动手写一个tinyhttpd](https://hewei.blog.csdn.net/article/details/121706604)
 - [libhv教程19--MQTT的实现与使用](https://hewei.blog.csdn.net/article/details/122753665)
 
-## ✨ 特征
+## ✨ 特性
 
-- 跨平台（Linux, Windows, MacOS, Solaris, Android, iOS）
+- 跨平台（Linux, Windows, MacOS, BSD, Solaris, Android, iOS）
 - 高性能事件循环（网络IO事件、定时器事件、空闲事件、自定义事件）
 - TCP/UDP服务端/客户端/代理
 - TCP支持心跳、转发、拆包、多线程安全write和close等特性
@@ -99,6 +99,7 @@ xrepo install libhv
 # 下载编译
 git clone https://github.com/ithewei/libhv.git
 cd libhv
+./configure
 make
 
 # 运行httpd服务
@@ -437,7 +438,7 @@ int main() {
 
 ## 🥇 性能测试
 
-### TCP压测
+### TCP回显服务pingpong测试
 ```shell
 cd echo-servers
 ./build.sh
@@ -482,6 +483,29 @@ throughput = 132 MB/s
 [127.0.0.1:2006] 4 threads 1000 connections run 10s
 total readcount=1699652 readbytes=1740443648
 throughput = 165 MB/s
+```
+
+### TCP代理服务压测
+
+```shell
+# sudo apt install iperf
+iperf -s -p 5001 > /dev/null &
+bin/tcp_proxy_server 1212 127.0.0.1:5001 &
+iperf -c 127.0.0.1 -p 5001 -l 8K
+iperf -c 127.0.0.1 -p 1212 -l 8K
+```
+
+**带宽**:
+```shell
+------------------------------------------------------------
+[  3] local 127.0.0.1 port 52560 connected with 127.0.0.1 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  20.8 GBytes  17.9 Gbits/sec
+
+------------------------------------------------------------
+[  3] local 127.0.0.1 port 48142 connected with 127.0.0.1 port 1212
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-10.0 sec  11.9 GBytes  10.2 Gbits/sec
 ```
 
 ### HTTP压测
