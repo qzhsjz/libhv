@@ -84,17 +84,18 @@ bool HttpHandler::SwitchWebSocket(hio_t* io) {
     ws_parser.reset(new WebSocketParser);
     ws_channel.reset(new hv::WebSocketChannel(io, WS_SERVER));
     ws_parser->onMessage = [this](int opcode, const std::string& msg){
+        hlogd("c[ws_parser.onMessage][opcode=%d] %s", opcode, msg.c_str());
         switch(opcode) {
         case WS_OPCODE_CLOSE:
             ws_channel->close(true);
             break;
         case WS_OPCODE_PING:
-            // printf("recv ping\n");
-            // printf("send pong\n");
+            hlogd("[WEBSOCKET] recv ping");
+            hlogd("[WEBSOCKET] send pong");
             ws_channel->sendPong();
             break;
         case WS_OPCODE_PONG:
-            // printf("recv pong\n");
+            hlogd("[WEBSOCKET] recv pong");
             this->last_recv_pong_time = gethrtime_us();
             break;
         case WS_OPCODE_TEXT:
@@ -117,7 +118,7 @@ bool HttpHandler::SwitchWebSocket(hio_t* io) {
                 hlogw("[%s:%d] websocket no pong!", ip, port);
                 ws_channel->close(true);
             } else {
-                // printf("send ping\n");
+                hlogd("[WEBSOCKET] send ping");
                 ws_channel->sendPing();
                 last_send_ping_time = gethrtime_us();
             }

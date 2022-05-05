@@ -2,6 +2,7 @@
 
 #include "websocket_parser.h"
 #include "hdef.h"
+#include "hlog.h"
 
 #define MAX_PAYLOAD_LENGTH  (1 << 24)   // 16M
 
@@ -26,7 +27,7 @@ static int on_frame_header(websocket_parser* parser) {
 }
 
 static int on_frame_body(websocket_parser* parser, const char * at, size_t length) {
-    // printf("on_frame_body length=%d\n", (int)length);
+    hlogd("[WEBSOCKET] on_frame_body length=%d", (int)length);
     WebSocketParser* wp = (WebSocketParser*)parser->data;
     wp->state = WS_FRAME_BODY;
     if (wp->parser->flags & WS_HAS_MASK) {
@@ -37,7 +38,7 @@ static int on_frame_body(websocket_parser* parser, const char * at, size_t lengt
 }
 
 static int on_frame_end(websocket_parser* parser) {
-    // printf("on_frame_end\n");
+    hlogd("[WEBSOCKET] on_frame_end");
     WebSocketParser* wp = (WebSocketParser*)parser->data;
     wp->state = WS_FRAME_END;
     if (wp->parser->flags & WS_FIN) {
@@ -45,6 +46,7 @@ static int on_frame_end(websocket_parser* parser) {
         if (wp->onMessage) {
             wp->onMessage(wp->opcode, wp->message);
         }
+        hlogd("[WEBSOCKET][RAW MESSAGE] %s", wp->message.c_str());
     }
     return 0;
 }
