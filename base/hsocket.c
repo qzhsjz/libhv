@@ -1,6 +1,7 @@
 #include "hsocket.h"
 
 #include "hdef.h"
+#include "hlog.h"
 
 #ifdef OS_WIN
 #include "hatomic.h"
@@ -173,6 +174,7 @@ static int sockaddr_bind(sockaddr_u* localaddr, int type) {
     // socket -> setsockopt -> bind
     int sockfd = socket(localaddr->sa.sa_family, type, 0);
     if (sockfd < 0) {
+        hloge("sockaddr_bind socket failed: localaddr->sa.sa_family=%d, type=%d, socket() API returned %d, h_errno=%d", localaddr->sa.sa_family, type, sockfd, h_errno);
         perror("socket");
         return socket_errno_negative();
     }
@@ -183,6 +185,7 @@ static int sockaddr_bind(sockaddr_u* localaddr, int type) {
         // NOTE: SO_REUSEADDR allow to reuse sockaddr of TIME_WAIT status
         int reuseaddr = 1;
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuseaddr, sizeof(int)) < 0) {
+            hloge("sockaddr_bind setsockopt failed: sockfd=%d, h_errno=%d", sockfd, h_errno);
             perror("setsockopt");
             goto error;
         }
@@ -203,6 +206,7 @@ static int sockaddr_bind(sockaddr_u* localaddr, int type) {
 */
 
     if (bind(sockfd, &localaddr->sa, sockaddr_len(localaddr)) < 0) {
+        hloge("sockaddr_bind bind failed: sockfd=%d, h_errno=%d", sockfd, h_errno);
         perror("bind");
         goto error;
     }
@@ -241,6 +245,7 @@ static int sockaddr_connect(sockaddr_u* peeraddr, int nonblock) {
 static int ListenFD(int sockfd) {
     if (sockfd < 0) return sockfd;
     if (listen(sockfd, SOMAXCONN) < 0) {
+        hloge("Listen error, sockfd=%d, h_errno=%d", sockfd, h_errno);
         perror("listen");
         closesocket(sockfd);
         return socket_errno_negative();
@@ -282,6 +287,7 @@ int Bind(int port, const char* host, int type) {
     memset(&localaddr, 0, sizeof(localaddr));
     int ret = sockaddr_set_ipport(&localaddr, host, port);
     if (ret != 0) {
+        hloge("Bind error: %s:%d in sockaddr_set_ipport, returned: %d", host, port, ret);
         return NABS(ret);
     }
     return sockaddr_bind(&localaddr, type);
@@ -290,6 +296,7 @@ int Bind(int port, const char* host, int type) {
 int Listen(int port, const char* host) {
     int sockfd = Bind(port, host, SOCK_STREAM);
     if (sockfd < 0) return sockfd;
+    hlogi("Bind success: %s:%d, fd=%d", host, port, sockfd);
     return ListenFD(sockfd);
 }
 
