@@ -393,6 +393,8 @@ void hio_handle_read(hio_t* io, void* buf, int readbytes) {
 }
 
 void hio_read_cb(hio_t* io, void* buf, int len) {
+    hlogd("[%ld-%ld][IO RECIEVED] %.*s", hloop_pid(io->loop), hloop_tid(io->loop), len, buf);
+
     if (io->read_flags & HIO_READ_ONCE) {
         io->read_flags &= ~HIO_READ_ONCE;
         hio_read_stop(io);
@@ -416,6 +418,8 @@ void hio_read_cb(hio_t* io, void* buf, int len) {
 }
 
 void hio_write_cb(hio_t* io, const void* buf, int len) {
+    hlogd("[%ld-%ld][IO WROTE] %.*s", hloop_pid(io->loop), hloop_tid(io->loop), len, buf);
+
     if (io->write_cb) {
         // printd("write_cb------\n");
         io->write_cb(io, buf, len);
