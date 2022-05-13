@@ -83,6 +83,12 @@ public:
         return write(WS_SERVER_PONG_FRAME, WS_SERVER_MIN_FRAME_SIZE);
     }
 
+    uint64_t total_delay_us = 0;
+    uint64_t total_pong_count = 0;
+    uint64_t getAvgDelayMs() {
+        return total_pong_count ? total_delay_us / total_pong_count / 1000 : 0;
+    }
+
 protected:
     int sendFrame(const char* buf, int len, enum ws_opcode opcode = WS_OPCODE_BINARY, bool fin = true) {
         bool has_mask = false;

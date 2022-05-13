@@ -37,6 +37,11 @@ public:
         ping_interval = ms;
     }
 
+    // avg_delay
+    unsigned int getAvgDelay() {
+        return lifetime_total_delay / lifetime_pong_cnt;
+    }
+
 private:
     enum State {
         CONNECTING,
@@ -52,6 +57,9 @@ private:
     // ping/pong
     int                 ping_interval;
     int                 ping_cnt;
+    unsigned int        last_ping_time;
+    unsigned int        lifetime_pong_cnt;
+    unsigned int        lifetime_total_delay;
 };
 
 }

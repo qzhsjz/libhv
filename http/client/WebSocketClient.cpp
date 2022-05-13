@@ -2,6 +2,7 @@
 
 #include "base64.h"
 #include "hlog.h"
+#include "htime.h"
 
 #define DEFAULT_WS_PING_INTERVAL    3000 // ms
 
@@ -136,6 +137,8 @@ int WebSocketClient::open(const char* _url, const http_headers& headers) {
                     case WS_OPCODE_PONG:
                         // printf("recv pong\n");
                         ping_cnt = 0;
+                        lifetime_pong_cnt++;
+                        lifetime_total_delay = gettick_ms() - last_ping_time;
                         break;
                     case WS_OPCODE_TEXT:
                     case WS_OPCODE_BINARY:
@@ -152,6 +155,7 @@ int WebSocketClient::open(const char* _url, const http_headers& headers) {
                     channel->setHeartbeat(ping_interval, [this](){
                         auto& channel = this->channel;
                         if (channel == NULL) return;
+                        if(!ping_cnt) last_ping_time = gettick_ms();
                         if (ping_cnt++ == 3) {
                             hloge("websocket no pong!");
                             channel->close();

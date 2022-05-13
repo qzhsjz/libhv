@@ -96,6 +96,8 @@ bool HttpHandler::SwitchWebSocket(hio_t* io) {
         case WS_OPCODE_PONG:
             // printf("recv pong\n");
             this->last_recv_pong_time = gethrtime_us();
+            ws_channel->total_delay_us += last_recv_pong_time - last_send_ping_time;
+            ws_channel->total_pong_count++;
             break;
         case WS_OPCODE_TEXT:
         case WS_OPCODE_BINARY:
